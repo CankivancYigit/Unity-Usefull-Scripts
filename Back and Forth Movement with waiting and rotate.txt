@@ -1,0 +1,53 @@
+	 [SerializeField] private float speed;
+
+        [SerializeField] private float xOffset, zOffset;
+        
+        [SerializeField] private float waitingTime = 0.5f;
+        
+        private Vector3 startingPos;
+        private Vector3 targetPos;
+        private Vector3 nextPosition;
+
+        private Vector3 directionToFace;
+        private float currentSpeed;
+        
+        // Use this for initialization
+        void Start()
+        {
+            startingPos = new Vector3(transform.position.x , transform.position.y, transform.position.z);
+            targetPos = new Vector3(transform.position.x + xOffset, transform.position.y, transform.position.z + zOffset);
+            nextPosition = targetPos;
+            currentSpeed = speed;
+            directionToFace = nextPosition - transform.position;
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+            transform.position = Vector3.MoveTowards(transform.position, nextPosition, currentSpeed * Time.deltaTime);
+
+            if (Vector3.Distance(transform.position,startingPos) < 0.1f)
+            {
+                nextPosition = targetPos;
+                directionToFace = nextPosition - transform.position;
+                StartCoroutine(WaitForTurn());
+            }
+
+            if (Vector3.Distance(transform.position,targetPos) < 0.1f)
+            {
+                nextPosition = startingPos;
+                directionToFace = nextPosition - transform.position;
+                StartCoroutine(WaitForTurn());
+
+            }
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(directionToFace), 5f * Time.deltaTime);
+        }
+
+        private IEnumerator WaitForTurn()
+        {
+            currentSpeed = 0;
+            yield return new WaitForSeconds(waitingTime);
+            currentSpeed = speed;
+        }
+    }

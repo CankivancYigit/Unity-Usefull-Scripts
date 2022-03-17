@@ -1,0 +1,29 @@
+	public Slider slider;
+
+        public float fillSpeed;
+
+        private float targetProgress;
+        
+        // Update is called once per frame
+        void Update()
+        {
+            if (slider.value < targetProgress)
+            {
+                slider.value += fillSpeed * Time.deltaTime;
+            }
+            
+            if(slider.value > targetProgress)
+            {
+                slider.value -= fillSpeed * Time.deltaTime;
+            }
+        }
+
+        public void IncrementProgress(float newProgress)
+        {
+            targetProgress = slider.value + newProgress;
+        }
+        
+        public void DecrementProgress(float newProgress)
+        {
+            targetProgress = slider.value - newProgress;
+        }

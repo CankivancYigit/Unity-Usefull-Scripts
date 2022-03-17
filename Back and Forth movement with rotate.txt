@@ -1,0 +1,36 @@
+ [SerializeField] private float speed;
+        
+        private Vector3 startingPos;
+        private Vector3 targetPos;
+        private Vector3 nextPosition;
+        
+        
+        // Use this for initialization
+        void Start()
+        {
+            
+            startingPos = new Vector3(-2.6f , transform.position.y, transform.position.z);
+            targetPos = new Vector3(2.6f , transform.position.y, transform.position.z);
+            nextPosition = targetPos;
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+            transform.position = Vector3.MoveTowards(transform.position, nextPosition, speed * Time.deltaTime);
+
+            if (Vector3.Distance(transform.position,startingPos) < 0.1f)
+            {
+                nextPosition = targetPos;
+                transform.rotation = Quaternion.Slerp(transform.rotation,Quaternion.Euler(transform.rotation.x,90,transform.rotation.z), 1);
+            }
+
+            if (Vector3.Distance(transform.position,targetPos) < 0.1f)
+            {
+                nextPosition = startingPos;
+                transform.rotation = Quaternion.Slerp(transform.rotation,Quaternion.Euler(transform.rotation.x,-90,transform.rotation.z), 1);
+            }
+
+        }

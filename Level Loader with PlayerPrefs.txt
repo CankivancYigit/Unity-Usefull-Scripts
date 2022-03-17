@@ -1,0 +1,115 @@
+ using EasyClap.Seneca.Common.EventBus;
+using EasyClap.Seneca.Common.Integrations;
+using EasyClap.Seneca.Common.PlayerPrefsUtils;
+using Eflatun.CodePatterns;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
+
+namespace EasyClap.Game
+{
+    public class LevelLoader : SceneSingleton<LevelLoader>
+    {
+        private static readonly PlayerPrefsEntryInt LastSuccessfulLevelIndex = new PlayerPrefsEntryInt("SavedLevel");
+        private static readonly PlayerPrefsEntryInt HasFinishedBefore = new PlayerPrefsEntryInt("HasFinishedBefore");
+
+        private bool DidNotifyLevelStart = false;
+        private bool DidNotifyLevelComplete = false;
+
+        private static bool DidWinLastLevel = true;
+        private static bool isFirstLevelOfTheSession = true;
+
+        private void Start()
+        {
+            if (isFirstLevelOfTheSession && LastSuccessfulLevelIndex.HasValue)
+            {
+                var totalLevelCount = SceneManager.sceneCountInBuildSettings - 1;
+                var levelToLoadLevelIndex = (LastSuccessfulLevelIndex.Value + 1) % totalLevelCount;
+                var levelToLoadBuildIndex = levelToLoadLevelIndex + 1;
+
+                LoadLevel(levelToLoadBuildIndex);
+
+                isFirstLevelOfTheSession = false;
+                return;
+            }
+            
+            NotifyLevelStart(!DidWinLastLevel);
+        }
+
+        private void LoadLevel(int levelIndex)
+        {
+            SceneManager.LoadScene(levelIndex);
+        }
+
+        public void HandleSuccess()
+        {
+            LastSuccessfulLevelIndex.Value = CurrentLevelIndex;
+            
+            NotifyLevelComplete(true);
+            DidWinLastLevel = true;
+        }
+
+        private void NotifyLevelComplete(bool isSuccess)
+        {
+            if (!DidNotifyLevelComplete)
+            {
+                var e = new AnalyticsLevelCompletedEvent(CurrentLevelIndex, isSuccess, 20);
+                EventBus<AnalyticsLevelCompletedEvent>.Emit(this, e);
+                DidNotifyLevelComplete = true;
+            }
+        }
+
+        public void HandleFail()
+        {
+            NotifyLevelComplete(false);
+           DidWinLastLevel = false;
+        }
+
+        private static int CurrentLevelIndex => SceneManager.GetActiveScene().buildIndex - 1;
+
+        public void ReloadLevel()
+        {
+            LoadLevel(SceneManager.GetActiveScene().buildIndex);
+
+            NotifyLevelStart(true);
+        }
+
+        private void NotifyLevelStart(bool isRestart)
+        {
+            if (!DidNotifyLevelStart)
+            {
+                var e = new AnalyticsLevelStartedEvent(CurrentLevelIndex, isRestart);
+                EventBus<AnalyticsLevelStartedEvent>.Emit(this, e);
+                DidNotifyLevelStart = true;
+            }
+        }
+
+        public void LoadNextLevel()
+        {
+            Scene currentScene = SceneManager.GetActiveScene();
+            int currentSceneIndex = currentScene.buildIndex;
+            
+            int nextSceneIndex = currentSceneIndex + 1;
+
+            int totalSceneCount = SceneManager.sceneCountInBuildSettings;
+            if (nextSceneIndex == totalSceneCount)
+            {
+                HasFinishedBefore.Value = 1;
+            }
+
+            if (HasFinishedBefore.HasValue && HasFinishedBefore.Value == 1)
+            {
+                do
+                {
+                    nextSceneIndex = Random.Range(1, totalSceneCount);
+                } while (currentSceneIndex == nextSceneIndex);
+                
+            }
+
+            LoadLevel(nextSceneIndex);
+
+            NotifyLevelStart(false);
+          
+        }
+    }
+}

@@ -1,0 +1,56 @@
+public ParticleSystem Powder;
+		public Transform PowderPouringPoint;
+		private ParticleSystem InstantiatedPowder;
+		
+		public static bool Tap, SwipeLeft, SwipeRight, SwipeUp, SwipeDown;
+		private bool isDraging = false;
+		private Vector2 StartTouch, SwipeDelta;
+		public float SwipeDeltaMagnitude = 400;
+		
+		#region Update
+
+		protected void Update()
+		{
+			Tap = SwipeDown = SwipeUp = SwipeLeft = SwipeRight = false;
+			if (Input.GetMouseButtonDown(0))
+			{
+				Tap = true;
+				isDraging = true;
+				StartTouch = Input.mousePosition;
+			}
+
+			if (Input.GetMouseButtonUp(0))
+			{
+				isDraging = false;
+				Reset();
+			}
+			
+			//Calculate the distance
+			SwipeDelta = Vector2.zero;
+			
+			if (Input.GetMouseButton(0))
+			{
+				SwipeDelta = (Vector2)Input.mousePosition - StartTouch;
+				isDraging = true;
+				if (SwipeDelta.magnitude > SwipeDeltaMagnitude)
+				{
+					InstantiatedPowder = Instantiate(Powder, PowderPouringPoint.position, Quaternion.identity);
+					// InstantiatedPowder.trigger.AddCollider(GameObject.Find("PaintingHand/ParticleTrigger").GetComponent<Collider>());
+					//InstantiatedPowder.transform.parent = this.gameObject.transform;
+					Destroy(InstantiatedPowder.gameObject,51f);
+					Reset();
+					Tap = true;
+					StartTouch = Input.mousePosition;
+				}
+			}
+
+		}
+		#endregion
+		
+		private void Reset()
+			{
+				StartTouch = SwipeDelta = Vector2.zero;
+				isDraging = false;
+			}
+		
+	}

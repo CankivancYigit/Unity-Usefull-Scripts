@@ -1,0 +1,19 @@
+public float InputSensitivity = 0.01f;
+private Vector3 PreviousMousePosition;
+
+ if (Input.GetMouseButtonDown(0))
+            {
+			PreviousMousePosition = Input.mousePosition;
+            }
+            if (Input.GetMouseButton(0))
+            {
+		var currentMousePosition = Input.mousePosition;
+		var mouseDelta = currentMousePosition - PreviousMousePosition;
+
+		transform.position += new Vector3(mouseDelta.x * InputSensitivity, 0f, 0f);
+
+		PreviousMousePosition = currentMousePosition;
+			}
+		}
+
+		

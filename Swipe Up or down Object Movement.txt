@@ -1,0 +1,33 @@
+ public Swipe swipeControls;
+    private Vector3 firstPosition, secondPosition, desiredPosition;
+    [SerializeField] Transform inWaterTransform, outWaterTransform;
+
+    private void Start()
+    {
+        firstPosition = outWaterTransform.position;
+        desiredPosition = firstPosition;
+        transform.position = firstPosition;
+        secondPosition = inWaterTransform.position;
+    }
+
+    void Update()
+    {
+        
+        if (Vector3.Distance(transform.position,firstPosition) < 0.1f)
+        {
+            if (swipeControls.SwipeDown)
+            {
+                desiredPosition = secondPosition;
+            }
+        }
+        
+        if (Vector3.Distance(transform.position,secondPosition) < 0.1f)
+        {
+            if (swipeControls.SwipeUp)
+            {
+                desiredPosition = firstPosition;
+            }
+        }
+        
+        transform.position = Vector3.MoveTowards(transform.position, desiredPosition, 3f * Time.deltaTime);
+    }

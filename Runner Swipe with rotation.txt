@@ -1,0 +1,73 @@
+	public float speed = 100f;
+                public float currentSpeed; 
+        
+                // [SerializeField] float lerpValue = 20f;
+                [SerializeField] float clampValue = 10f;
+        
+                public float InputSensitivity = 0.02f;
+                private Vector3 PreviousMousePosition;
+                private float DesiredHorizontalPosition;
+                private Quaternion targetRotation;
+                private Quaternion startRotation;
+                
+                Rigidbody rgb;
+        
+                public bool CanSwerve = true;
+                private bool changing;
+        
+                public float mouseDeltaSmoothLerpFactor;
+                private Vector3 smoothMouseDelta = Vector3.zero;
+        
+                protected void Awake()
+                {
+                    rgb = GetComponent<Rigidbody>();
+                    startRotation = Quaternion.LookRotation(Vector3.forward);
+                    currentSpeed = speed;
+                }
+        
+                #region Update
+        
+                void Update()
+                {
+                    if (CanSwerve)
+                    {
+                        if (Input.GetMouseButtonDown(0))
+                        {
+                            PreviousMousePosition = Input.mousePosition;
+                        }
+                        if (Input.GetMouseButton(0))
+                        {
+                            var currentMousePosition = Input.mousePosition;
+                            var mouseDelta = currentMousePosition - PreviousMousePosition;
+                            smoothMouseDelta = Vector3.Lerp(smoothMouseDelta, mouseDelta, mouseDeltaSmoothLerpFactor * Time.deltaTime);
+                            PreviousMousePosition = currentMousePosition;
+        
+                            var angleTarget = Mathf.Clamp(smoothMouseDelta.x * 10, -60f, 60f);
+                            DesiredHorizontalPosition += smoothMouseDelta.x * InputSensitivity;
+                            DesiredHorizontalPosition = Mathf.Clamp(DesiredHorizontalPosition, -clampValue, clampValue);
+                            targetRotation = Quaternion.AngleAxis(angleTarget, transform.up);
+                        }
+        
+                        if (Input.GetMouseButtonUp(0))
+                        {
+                            targetRotation = startRotation;
+                            smoothMouseDelta = Vector3.zero;
+                        }
+                    }
+                }
+        
+                void FixedUpdate()
+                {
+                    // Walk
+                    var velocity = new Vector3(0, rgb.velocity.y, speed);
+
+                    var currentPositionX = rgb.position.x;
+                    var targetPositionX = DesiredHorizontalPosition;
+                    var requiredVelocity = (targetPositionX - currentPositionX) / Time.fixedDeltaTime;
+                    velocity.x = requiredVelocity;
+
+                    rgb.velocity = velocity;
+
+                    // Rotation
+                    rgb.rotation = Quaternion.Slerp(rgb.rotation, targetRotation,4f * Time.fixedDeltaTime);
+                }

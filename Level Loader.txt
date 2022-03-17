@@ -1,0 +1,35 @@
+public static bool ReachedLastLevel = false;
+
+        private const string SavedLevel = "SavedLevel";
+        
+     
+        private void LoadLevel(int levelIndex)
+        {
+            SceneManager.LoadScene(levelIndex);
+        }
+        
+        public void ReloadLevel()
+        {
+            LoadLevel(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        public void LoadNextLevel()
+        {
+            Scene currentScene = SceneManager.GetActiveScene();
+            int currentSceneIndex = currentScene.buildIndex;
+            
+            int nextSceneIndex = currentSceneIndex + 1;
+
+            int totalSceneCount = SceneManager.sceneCountInBuildSettings;
+            if (nextSceneIndex == totalSceneCount)
+            {
+                ReachedLastLevel = true;
+            }
+
+            if (ReachedLastLevel)
+            {
+                nextSceneIndex = Random.Range(1, totalSceneCount);
+            }
+
+            LoadLevel(nextSceneIndex);
+        }
